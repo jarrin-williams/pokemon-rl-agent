@@ -1,0 +1,16 @@
+# Local Python environment
+.venv/
+
+# Generated Python files
+__pycache__/
+*.py[cod]
+
+# macOS metadata
+.DS_Store
+
+# Local secrets
+.env
+.env.*
+
+# Generated battle results
+results/
