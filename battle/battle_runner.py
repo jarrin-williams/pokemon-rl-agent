@@ -1,18 +1,20 @@
 import time
+from uuid import uuid4
 
 from agents.type_aware_agent import TypeAwareAgent
 from agents.max_power_agent import MaxPowerAgent
-from evaluation.battle_logger import save_battles
+from evaluation.battle_logger import save_battles, save_experiment_metadata
 
 
 async def run_battles(num_battles):
+    battle_format = "gen9randombattle"
     max_agent = MaxPowerAgent(
-        battle_format = "gen9randombattle",
+        battle_format = battle_format,
         max_concurrent_battles = 1
     )
 
     type_agent = TypeAwareAgent(
-        battle_format = "gen9randombattle",
+        battle_format = battle_format,
         max_concurrent_battles = 1,
     )
 
@@ -28,7 +30,15 @@ async def run_battles(num_battles):
         elapsed = time.perf_counter() - start
 
 
-        csv_path = save_battles(type_agent, max_agent)
+        experiment_id = str(uuid4())
+        filename = f"battles_{experiment_id}.csv"
+        csv_path = save_battles(type_agent, max_agent, filename=filename)
+        metadata = {
+            "experiment_id": experiment_id,
+            "battle_format": battle_format,
+            "num_battles_requested": num_battles,
+        }
+        metadata_path = save_experiment_metadata(csv_path, metadata)
 
         battles = list(type_agent.battles.values())
 
@@ -50,6 +60,7 @@ async def run_battles(num_battles):
         print(f"Average turns: {average_turns:.2f}")
         print(f"Elapsed time: {elapsed:.2f} seconds")
         print(f"Results saved to: {csv_path}")
+        print(f"Run settings saved to : {metadata_path}")
 
     finally:
         await type_agent.ps_client.stop_listening()

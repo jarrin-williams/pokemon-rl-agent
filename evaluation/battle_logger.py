@@ -1,4 +1,5 @@
 import csv
+import json
 from datetime import datetime
 from pathlib import Path
 
@@ -35,3 +36,9 @@ def save_battles(agent, opponent, filename=None) :
                 battle.turn
             ])
     return file_path
+
+def save_experiment_metadata(csv_path, metadata):
+    metadata_path = Path(csv_path).with_suffix(".json")
+    with metadata_path.open("w", encoding="utf-8") as file:
+        json.dump(metadata,file, indent=2)
+        return metadata_path
