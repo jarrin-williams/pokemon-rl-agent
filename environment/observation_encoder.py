@@ -25,9 +25,9 @@ def encode_battle(battle):
 
         move_powers[i] = min(move.base_power / 200.0, 1.0)
 
-    if opponent is not None:
-        multiplier = opponent.damage_multiplier(move)
-        move_effectiveness[i] = min(multiplier / 4.0, 1.0)
+        if opponent is not None:
+            multiplier = opponent.damage_multiplier(move)
+            move_effectiveness[i] = min(multiplier / 4.0, 1.0)
     
     observation = np.array(
         [

@@ -7,6 +7,7 @@ from battle.battle_runner import run_battles
 NUM_BATTLES = 100
 
 def positive_int(value):
+
     try:
         number = int(value)
     except ValueError:
@@ -20,6 +21,7 @@ def positive_int(value):
     return number
 
 def parse_args():
+
     parser = argparse.ArgumentParser(description="Run a Pokemon battle experiment")
     parser.add_argument(
         "--num-battles",
@@ -31,6 +33,7 @@ def parse_args():
 
 
 async def main(num_battles=None):
+    
     if num_battles is None:
         num_battles = NUM_BATTLES
     await run_battles(num_battles)
