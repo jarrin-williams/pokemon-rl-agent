@@ -10,8 +10,10 @@ def first_legal_policy(observation, action_mask):
 class ObservationAgent(Player):
 
     def __init__(self, policy, **player_options):
-        super().__init__(**player_options)
         self.policy = policy
+        super().__init__(**player_options)
+
+        
 
     def choose_move(self, battle):
         

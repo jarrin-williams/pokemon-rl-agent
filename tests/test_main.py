@@ -10,13 +10,19 @@ class MainTests(unittest.IsolatedAsyncioTestCase):
         with patch.object(main, "NUM_BATTLES", 7):
             with patch.object(main, "run_battles", new_callable=AsyncMock) as runner:
                 await main.main()
-                runner.assert_awaited_once_with(7)
+                runner.assert_awaited_once_with(7, agent_type="type-aware")
 
     async def test_main_uses_explicit_battle_count(self):
         with patch.object(main, "run_battles", new_callable=AsyncMock) as runner:
-            await main.main(3)
+            await main.main(3, agent_type="type-aware")
 
-        runner.assert_awaited_once_with(3)
+        runner.assert_awaited_once_with(3, agent_type="type-aware")
+    
+    async def test_main_forwards_correct_agent_to_runner(self):
+        with patch.object(main, "run_battles", new_callable=AsyncMock) as runner:
+            await main.main(3, agent_type="observation")
+        
+        runner.assert_awaited_once_with(3, agent_type="observation")
 
 class PositiveIntTests(unittest.TestCase):
     

@@ -37,6 +37,9 @@ class BattleRunnerTests(unittest.IsolatedAsyncioTestCase):
                 "experiment_id": "test-run-id",
                 "battle_format": "gen9randombattle",
                 "num_battles_requested": 1,
+                "agent": "SimpleNamespace",
+                "opponent": "SimpleNamespace",
+                "policy": None,
             }
         )
 
@@ -59,10 +62,95 @@ class BattleRunnerTests(unittest.IsolatedAsyncioTestCase):
             ),
         )
 
-        with patch.object(battle_runner, "TypeAwareAgent", return_value=type_agent), patch.object(battle_runner, "MaxPowerAgent", return_value=max_agent):
+        with patch.object(
+            battle_runner,
+            "TypeAwareAgent", 
+            return_value=type_agent
+            ), patch.object(
+                battle_runner, 
+                "MaxPowerAgent", 
+                return_value=max_agent
+                ):
             with self.assertRaisesRegex(RuntimeError, "Battle connection failed"):
                 await battle_runner.run_battles(3)
 
 
         type_agent.ps_client.stop_listening.assert_awaited()
         max_agent.ps_client.stop_listening.assert_awaited()
+
+    async def test_observation_agent_constructs_with_first_legal_policy(self):
+        
+        battle = SimpleNamespace(
+
+            won=True,
+            lost=False,
+            turn=12
+
+            )
+        agent = SimpleNamespace(
+
+            battles={"battle-test-1": battle},
+            win_rate=1.0,
+            battle_against=AsyncMock(),
+
+            ps_client=SimpleNamespace(stop_listening=AsyncMock()),
+
+        )
+        
+        opponent = SimpleNamespace(
+
+            ps_client=SimpleNamespace(stop_listening=AsyncMock()),
+
+        )
+
+        with patch.object(
+            battle_runner,
+            "ObservationAgent",
+            return_value=agent
+            ) as observation_factory, patch.object(
+                battle_runner,
+                "MaxPowerAgent",
+                return_value=opponent
+            ), patch.object(
+                battle_runner,
+                "uuid4",
+                return_value="test-run-id"
+            ), patch.object(
+                battle_runner,
+                "save_battles",
+                return_value="results/battles_test-run-id.csv"
+            ), patch.object(
+                battle_runner,
+                "save_experiment_metadata",
+                return_value="results/battles_test-run-id.json"
+            ) as save_metadata:
+                await battle_runner.run_battles(
+                    1,
+                    agent_type="observation"
+                )
+
+        observation_factory.assert_called_once_with(
+            battle_format="gen9randombattle",
+            max_concurrent_battles=1,
+            policy=battle_runner.first_legal_policy
+            )
+            
+
+        agent.battle_against.assert_awaited_once_with(
+            opponent,
+            n_battles=1
+        )
+
+        save_metadata.assert_called_once_with(
+             "results/battles_test-run-id.csv",
+            {
+                "experiment_id": "test-run-id",
+                "battle_format": "gen9randombattle",
+                "num_battles_requested": 1,
+                "agent": "SimpleNamespace",
+                "opponent": "SimpleNamespace",
+                "policy": "first_legal_policy",
+            }
+        )
+        agent.ps_client.stop_listening.assert_awaited_once()
+        opponent.ps_client.stop_listening.assert_awaited_once()
