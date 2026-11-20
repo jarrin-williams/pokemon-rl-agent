@@ -14,3 +14,6 @@ __pycache__/
 
 # Generated battle results
 results/
+
+# Temporary environment of dependency verification
+.venv-check/
