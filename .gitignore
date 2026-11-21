@@ -17,3 +17,6 @@ results/
 
 # Temporary environment of dependency verification
 .venv-check/
+
+# python3.12 environment
+.venv-py312
